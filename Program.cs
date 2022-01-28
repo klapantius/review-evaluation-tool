@@ -12,12 +12,14 @@ namespace review_evaluation_tool
 {
     class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            MainAsync(args).GetAwaiter().GetResult();
+            var exitCode = MainAsync(args).GetAwaiter().GetResult();
+            if (Debugger.IsAttached) Console.ReadKey();
+            return exitCode;
         }
 
-        internal static async Task MainAsync(string[] args)
+        internal static async Task<int> MainAsync(string[] args)
         {
             var opt = new OptionProvider(args);
 
@@ -44,23 +46,27 @@ namespace review_evaluation_tool
             {
                 if (prId == 0) throw new Exception("Neither a build id nor a PR id is available to start with.");
             }
-            Console.WriteLine($"loading reviewer information for PR {prId}");
+
+            Console.WriteLine($"loading PR {prId}");
             var pr = await git.GetPullRequestByIdAsync(project: tp, prId);
             //Console_Dump($"PR {prId}", pr);
+
+            var isSafety = await new SafetynessEvaluator(git).Check(pr);
+            Console.WriteLine($"safety relevant: {isSafety}");
+            if (!isSafety) return 0;
+
             var reviewers = pr.Reviewers;
-
             Console_Dump("reviewers", reviewers.Select(r => new { r.DisplayName, _ = r.IsRequired ? "required" : "optional", r.Vote }));
-
 
             // count required reviewers and their votes
 
             // count votes from optional reviewers
             //pr.Reviewers.First().Vote == 10
 
-            if (Debugger.IsAttached) Console.ReadKey();
+            return 0;
         }
 
-        private static void Console_Dump(string title, object data)
+        internal static void Console_Dump(string title, object data)
         {
             const int LENGTH = 180;
             Console.WriteLine($"--- {title} {new StringBuilder().Insert(0, "-", LENGTH - 5 - title.Length)}");
