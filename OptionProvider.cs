@@ -21,19 +21,26 @@ namespace review_evaluation_tool
 
         public string GetParam(string envVarName, string optionName, string defaultValue = null)
         {
-            var env = Environment.GetEnvironmentVariable(envVarName);
-            if (!string.IsNullOrEmpty(env))
+            if (string.IsNullOrEmpty(envVarName) && string.IsNullOrEmpty(optionName))
             {
-                return env;
+                throw new Exception("neither an environment variable nor an option name specified");
+            }
+            if (!string.IsNullOrEmpty(envVarName))
+            {
+                var env = Environment.GetEnvironmentVariable(envVarName);
+                if (!string.IsNullOrEmpty(env))
+                {
+                    return env;
+                }
             }
             if (!string.IsNullOrWhiteSpace(optionName))
             {
-            var idx = args.IndexOf(optionName.ToLowerInvariant());
-            if (idx >= 0)
-            {
-                if (idx < args.Count) return args[idx + 1];
-                throw new Exception($"Argument \"{optionName}\" has no value");
-            }
+                var idx = args.IndexOf(optionName.ToLowerInvariant());
+                if (idx >= 0)
+                {
+                    if (idx < args.Count) return args[idx + 1];
+                    throw new Exception($"Argument \"{optionName}\" has no value");
+                }
             }
             if (!string.IsNullOrWhiteSpace(defaultValue))
             {
