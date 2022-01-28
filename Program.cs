@@ -12,8 +12,6 @@ namespace review_evaluation_tool
 {
     class Program
     {
-        private static readonly string PrIdKey = "system.pullRequest.pullRequestId";
-
         public static void Main(string[] args)
         {
             MainAsync(args).GetAwaiter().GetResult();
@@ -31,9 +29,9 @@ namespace review_evaluation_tool
             var git = tpc.GetClient<GitHttpClient>();
 
             var buildData = await buildClient.GetBuildAsync(project: tp, buildId);
-            var buildParams = JsonSerializer.Deserialize< Dictionary<string, string>>(buildData.Parameters);
+            var buildParams = JsonSerializer.Deserialize<Dictionary<string, string>>(buildData.Parameters);
 
-            //Console.WriteLine(JsonSerializer.Serialize(buildParams, new JsonSerializerOptions { WriteIndented = true }));
+            Console_Dump($"parameters of build {buildData.BuildNumber}", buildParams);
             var prId = int.Parse(buildParams["system.pullRequest.pullRequestId"]);
             var repoUri = buildParams["system.pullRequest.sourceRepositoryUri"];
             var repoName = repoUri.Split('/').Last();
@@ -41,12 +39,11 @@ namespace review_evaluation_tool
 
             // this goes faster
             var reviewers = await git.GetPullRequestReviewersAsync(project: tp, repoName, prId);
-            Console.WriteLine(JsonSerializer.Serialize(reviewers, new JsonSerializerOptions { WriteIndented = true }));
+            Console_Dump("reviewers", reviewers.Select(r => new { r.DisplayName, _ = r.IsRequired ? "required" : "optional", r.Vote }));
 
             //// this provides more information (inclusive the above)
             //var pr = await git.GetPullRequestByIdAsync(project: tp, prId);
-            //Console.WriteLine(new StringBuilder().Insert(0, "-", 50));
-            //Console.WriteLine(JsonSerializer.Serialize(pr, new JsonSerializerOptions { WriteIndented = true }));
+            //Console_Dump($"PR {prId}", pr);
 
             // count required reviewers and their votes
 
@@ -54,6 +51,13 @@ namespace review_evaluation_tool
             //pr.Reviewers.First().Vote == 10
 
             if (Debugger.IsAttached) Console.ReadKey();
+        }
+
+        private static void Console_Dump(string title, object data)
+        {
+            Console.WriteLine($"--- {title} {new StringBuilder().Insert(0, "-", 200 - 5 - title.Length)}");
+            Console.WriteLine(JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+            Console.WriteLine(new StringBuilder().Insert(0, "-", 200));
         }
 
     }
