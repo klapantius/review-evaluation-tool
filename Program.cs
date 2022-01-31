@@ -69,6 +69,18 @@ namespace review_evaluation_tool
             // - another option is to emit the error as a vso command
             // - further it is possible to add a new comment thread to the PR with this message
 
+            await git.CreateThreadAsync(new GitPullRequestCommentThread
+            {
+                Comments = new[]
+                {
+                    new Comment
+                    {
+                        Content = rc.GetErrorMessage()
+                    }
+                },
+                Status = CommentThreadStatus.Active
+            }, pr.Repository.Id, prId);
+
             return 1; // this will let the build task fail
         }
 
