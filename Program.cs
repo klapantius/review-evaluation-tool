@@ -22,7 +22,7 @@ namespace review_evaluation_tool
         {
             var opt = new OptionProvider(args);
 
-            var tp = opt.GetParam("BUILD_TEAMPROJECT", "tp", "syngo.net");
+            var tp = opt.GetParam("SYSTEM_TEAMPROJECT", "tp", "syngo.net");
             var buildId = int.Parse(opt.GetParam("BUILD_BUILDID", "buildid", "0"));
             var prId = int.Parse(opt.GetParam(null, "prid", "0"));
 
