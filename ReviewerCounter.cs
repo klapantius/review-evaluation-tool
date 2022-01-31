@@ -35,7 +35,7 @@ namespace review_evaluation_tool
                     || r.Vote != 0);         // or already has voted anything
 
             MissingReviewers = minCountsRequired - ensuredVotes;
-            return MissingReviewers == 0;
+            return MissingReviewers <= 0;
         }
     }
 }
